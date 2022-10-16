@@ -79,26 +79,20 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
-    username = request.form['username']
     if request.method == 'POST':
-        db = get_db()
-        cur = db.execute('select id, uPass from users WHERE users.username=?',username)
-        entries = cur.fetchall()
-        if cur.rowcount == 0 or request.form['password'] != entries.uPass:
-            error = 'Invalid username or password'
-        else:
-            session['logged_in'] = True
-            session['user_id'] = entries.id
-            flash('You were logged in')
-            return redirect(url_for('index'))
+        username = request.form['username']
+        session['logged_in'] = True
+        session['user_id'] = 3
+        flash('You are logged in')
+        return redirect(url_for('index'))
     return render_template('login.html', error=error)
 
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)
-    session.pop['user_id', None]
-    flash('You were logged out')
-    return redirect(url_for('login'))
+    session.pop('logged_in', False)
+    session.pop('user_id', None)
+    flash('You are logged out')
+    return redirect(url_for('index'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -202,22 +196,22 @@ def upload_wav():
  #   return redirect(url_for('login'))
   if request.method == 'POST':
     file = request.files['file']
-    file.save(os.path.join("uploads/", file.filename))
+    file.save(os.path.join("wavUploads/", file.filename))
     """ db = get_db()
     db.execute('insert into uploads (title, text) values (?, ?)',
                  [request.form['title'], request.form['text']])
     db.commit() """
-    return render_template("uploadWav.html", msg = "File uplaoded successfully.")
+    return render_template("uploadWav.html", msg = "File uploaded successfully.")
   return render_template("uploadWav.html", msg = "")
 
 @app.route("/uploads")
 def uploads():
-  files = os.listdir('uploads')
+  files = os.listdir('wavUploads')
   return render_template('uploads.html', files=files)
   
 @app.route('/getFile/<path:filename>')
 def getFile(filename):
-    path ='uploads'
+    path ='wavUploads'
     return send_from_directory(
         path,
         filename,

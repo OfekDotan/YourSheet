@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Audio Example</title>
-  </head>
-  <body>
+{% extends "layout.html" %}
+{% block body %}
+{% if session.logged_in %}
     <h2>Serving audio files from Flask</h2>
    {% for filename in files %}
     <audio controls>
@@ -11,5 +8,6 @@
     </audio>
     {% endfor %}
     <p>Click on play icon to play</p>
-  </body>
-</html>
+    <a href="{{ url_for('index') }}">Home</a>
+{% endif %}
+{% endblock %}
