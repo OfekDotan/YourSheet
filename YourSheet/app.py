@@ -1,4 +1,3 @@
-
 # import required libraries
 import wave
 import sounddevice as sd
@@ -7,7 +6,7 @@ import wavio as wv
 import os
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, abort, \
-     render_template, flash, request
+     render_template, flash, request, send_from_directory
 import numpy as np
 import librosa
 import pandas as pd
@@ -18,7 +17,7 @@ from midi2audio import FluidSynth
 import os
 import dash_bootstrap_components as dbc
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path="", static_folder="static")
 
 app.config.from_object(__name__) # load config from this file , flaskr.py
 
@@ -76,6 +75,7 @@ noteNum= 105
 @app.route('/')
 def index():
   return render_template('index.html')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -99,6 +99,24 @@ def logout():
     session.pop['user_id', None]
     flash('You were logged out')
     return redirect(url_for('login'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    error = None
+    username = request.form['username']
+    password = request.form['password']
+    if request.method == 'POST':
+        db = get_db()
+        cur = db.execute('select id from users WHERE users.username=?',username)
+        if cur.rowcount != 0 :
+            error = 'username is taken'
+        else:
+            sql = "INSERT INTO users (username, uPass) VALUES (%s, %s)"
+            cur.execute(sql, username, password)
+            flash('registered succesfuly!')
+            return redirect(url_for('login'))
+    return render_template('register.html', error=error)
+
 
 #Do register 
 @app.route('/my-link/')
@@ -182,28 +200,24 @@ def my_link():
 def upload_wav():
   if request.method == 'POST':
     file = request.files['file']
-    file.save(os.path.join("uploads/", file.filename))
+    file.save(os.path.join("static/uploads/", file.filename))
     return render_template("uploadWav.html", msg = "File uplaoded successfully.")
   return render_template("uploadWav.html", msg = "")
 
 @app.route("/uploads")
 def uploads():
-  return render_template("uploads.html")
+  files = os.listdir('uploads')
+  return render_template('uploads.html', files=files)
   
-@app.route('/login', methods=['GET', 'POST'])
-def log_in():
-    error = None
-    if request.method == 'POST':
-        username = request.form['username']
-        db = get_db()
-        cur = db.execute('select password from users where users.username=?',(username))
-        if cur.rowcount==0 or cur.fetchall != request.form['password']:
-          error = 'Invalid password or username'
-        else:
-          session['logged_in'] = True
-          flash('You were logged in')
-          return redirect(url_for('index'))
-    return render_template('login.html', error=error)
+@app.route('/getFile/<path:filename>')
+def getFile(filename):
+    path ='uploads'
+    return send_from_directory(
+        path,
+        filename,
+        as_attachment=True,
+        mimetype='audio/wav'
+    )
 
 @app.route('/play/')
 def play():

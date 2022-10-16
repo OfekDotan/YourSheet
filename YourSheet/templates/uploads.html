@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Audio Example</title>
+  </head>
+  <body>
+    <h2>Serving audio files from Flask</h2>
+   {% for filename in files %}
+    <audio controls>
+        <source src="{{ url_for('getFile', filename=filename) }}" type="audio/wav">
+    </audio>
+    {% endfor %}
+    <p>Click on play icon to play</p>
+  </body>
+</html>
