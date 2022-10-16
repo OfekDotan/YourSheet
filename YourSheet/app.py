@@ -45,6 +45,18 @@ def connect_db():
     rv.row_factory = sqlite3.Row
     return rv
 
+def init_db():
+    db = get_db()
+    with app.open_resource('schema.sql', mode='r') as f:
+        db.cursor().executescript(f.read())
+    db.commit()
+
+@app.cli.command('initdb')
+def initdb_command():
+    """Initializes the database."""
+    init_db()
+    print('Initialized the database.')
+
 @app.teardown_appcontext
 def close_db(error):
     """Closes the database again at the end of the request."""
@@ -64,7 +76,31 @@ noteNum= 105
 @app.route('/')
 def index():
   return render_template('index.html')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    username = request.form['username']
+    if request.method == 'POST':
+        db = get_db()
+        cur = db.execute('select id, uPass from users WHERE users.username=?',username)
+        entries = cur.fetchall()
+        if cur.rowcount == 0 or request.form['password'] != entries.uPass:
+            error = 'Invalid username or password'
+        else:
+            session['logged_in'] = True
+            session['user_id'] = entries.id
+            flash('You were logged in')
+            return redirect(url_for('index'))
+    return render_template('login.html', error=error)
 
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    session.pop['user_id', None]
+    flash('You were logged out')
+    return redirect(url_for('login'))
+
+#Do register 
 @app.route('/my-link/')
 def my_link():
   # Start recorder with the given values 
@@ -149,8 +185,25 @@ def upload_wav():
     file.save(os.path.join("uploads/", file.filename))
     return render_template("uploadWav.html", msg = "File uplaoded successfully.")
   return render_template("uploadWav.html", msg = "")
-  
 
+@app.route("/uploads")
+def uploads():
+  return render_template("uploads.html")
+  
+@app.route('/login', methods=['GET', 'POST'])
+def log_in():
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        db = get_db()
+        cur = db.execute('select password from users where users.username=?',(username))
+        if cur.rowcount==0 or cur.fetchall != request.form['password']:
+          error = 'Invalid password or username'
+        else:
+          session['logged_in'] = True
+          flash('You were logged in')
+          return redirect(url_for('index'))
+    return render_template('login.html', error=error)
 
 @app.route('/play/')
 def play():
