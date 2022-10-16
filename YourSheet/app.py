@@ -198,9 +198,15 @@ def my_link():
 
 @app.route("/upload-wav", methods = ["GET", "POST"])
 def upload_wav():
+ # if not session.get('logged_in'):
+ #   return redirect(url_for('login'))
   if request.method == 'POST':
     file = request.files['file']
-    file.save(os.path.join("static/uploads/", file.filename))
+    file.save(os.path.join("uploads/", file.filename))
+    """ db = get_db()
+    db.execute('insert into uploads (title, text) values (?, ?)',
+                 [request.form['title'], request.form['text']])
+    db.commit() """
     return render_template("uploadWav.html", msg = "File uplaoded successfully.")
   return render_template("uploadWav.html", msg = "")
 
