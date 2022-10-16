@@ -1,4 +1,7 @@
 # import required libraries
+from cgi import test
+from operator import truediv
+from unicodedata import name
 import wave
 import sounddevice as sd
 from scipy.io.wavfile import write
@@ -16,6 +19,7 @@ from midiutil import MIDIFile
 from midi2audio import FluidSynth
 import os
 import dash_bootstrap_components as dbc
+import sys
 
 app = Flask(__name__, static_url_path="", static_folder="static")
 
@@ -78,13 +82,29 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    app.logger.info("test1")
     error = None
+    isE=False
     if request.method == 'POST':
         username = request.form['username']
-        session['logged_in'] = True
-        session['user_id'] = 3
-        flash('You are logged in')
-        return redirect(url_for('index'))
+        db = get_db()
+        cur = db.execute('select id, uPass from users WHERE users.username=?',(username,))
+        rows = cur.fetchall() 
+        if not len(rows):
+            error = 'Invalid username or password'
+            isE=True
+        else:
+            id = rows[0][0]
+            uPass = rows[0][1]
+            if  request.form['password'] != uPass:
+                error = 'Invalid username or password'
+                isE=True
+        if not isE:
+            session['logged_in'] = True
+            session['user_id'] = id
+            flash('You were logged in')
+            return redirect(url_for('index'))
+        
     return render_template('login.html', error=error)
 
 @app.route('/logout')
@@ -97,16 +117,19 @@ def logout():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
-    username = request.form['username']
-    password = request.form['password']
     if request.method == 'POST':
-        db = get_db()
-        cur = db.execute('select id from users WHERE users.username=?',username)
-        if cur.rowcount != 0 :
-            error = 'username is taken'
+        username = request.form['username']
+        password = request.form['password']
+        conn = get_db()
+        cursor = conn.cursor()
+        cur = cursor.execute("select id from users WHERE username = ?",[username])
+        if len(cur.fetchall()):
+            error = "username is taken"
         else:
-            sql = "INSERT INTO users (username, uPass) VALUES (%s, %s)"
-            cur.execute(sql, username, password)
+            sql = "INSERT INTO users(username, uPass) VALUES (?, ?)"
+            newUser = (username, password)
+            cursor.execute(sql, newUser)
+            conn.commit()
             flash('registered succesfuly!')
             return redirect(url_for('login'))
     return render_template('register.html', error=error)
@@ -248,6 +271,8 @@ def play():
 
 if __name__ == '__main__':
   app.run(debug=True)
+  
+
   
 
   
