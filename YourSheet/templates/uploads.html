@@ -1,13 +1,24 @@
 {% extends "layout.html" %}
 {% block body %}
 {% if session.logged_in %}
-    <h2>Serving audio files from Flask</h2>
+    <h2>Your wave files</h2>
    {% for filename in files %}
+   <h4 class="darkbold">{{filename}}</h4>
     <audio controls>
         <source src="{{ url_for('getFile', filename=filename) }}" type="audio/wav">
     </audio>
+    <h4 class="darkbold">__________________________________</h4>
     {% endfor %}
     <p>Click on play icon to play</p>
     <a href="{{ url_for('index') }}">Home</a>
+    <form method="post" action="/to-midi" enctype="multipart/form-data">
+        <select name="filename" id="filename">
+            <option label="Choose the file you want to convert to music sheet:"></option>
+            {% for filename in files %}
+            <option value="{{filename}}">{{filename}}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" name="submit" class="btn btn-success btn-lg btn-block" value="Confirm">
+    </form>
 {% endif %}
 {% endblock %}

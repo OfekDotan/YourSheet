@@ -19,10 +19,23 @@ from midiutil import MIDIFile
 from midi2audio import FluidSynth
 import os
 import dash_bootstrap_components as dbc
+from mido import MidiFile
+from sound_to_midi.monophonic import wave_to_midi
 import sys
+import random
+from flask import request
+from scipy.io import wavfile
+from pretty_midi import PrettyMIDI
+from visual_midi import Plotter, Preset
+from logging import exception
+from os import system
+import mingus as mingus
+import mingus.extra.lilypond
+import mingus.midi.midi_file_in
+from pathlib import Path
 
+fix_amount=10
 app = Flask(__name__, static_url_path="", static_folder="static")
-
 app.config.from_object(__name__) # load config from this file , flaskr.py
 
 # Load default config and override config from an environment variable
@@ -212,7 +225,51 @@ def my_link():
   print ('I got clicked!')
   return render_template('show.html')
 
+#makes the midi file more 'corrupt' 
+def fix(midi, filesound):
+  seconds = librosa.get_duration(filename =filesound)
+  for i in range( int(seconds)*2):
+    if random.randint(0, 100) < 1:
+      midi.addNote(0 , 0, random.randint(24, 104), i, 1, 100)
+  return(midi)
 
+#this method convert midi file to pdf
+def MidiToSheet():
+    myMIDI = r"midiResults\result.mid"
+    fullPath = os.path.abspath(myMIDI)
+    fullPath = (os.path.dirname(fullPath))
+    fullPath = os.path.join(fullPath, "result.mid")
+    print(fullPath)
+    try:
+        composition = mingus.midi.midi_file_in.MIDI_to_Composition(fullPath)
+    except:
+        print("Oops!error occurred.")
+    else:
+        sheet = mingus.extra.lilypond.from_Composition(composition[0])
+        print (sheet)
+        param = mingus.extra.lilypond.to_pdf(sheet,str(Path.home() / "Downloads")+r"\result.pdf")
+        print (param)
+
+
+#this method gets wav file and convert it to midi
+@app.route("/to-midi", methods = ["POST"])
+def to_midi():
+    filename = request.form['filename']
+    filesound = os.path.join("wavUploads/", filename)
+    y, sr = librosa.load(filesound, sr=samplingrate)
+    print("Audio file loaded!")
+    midi = wave_to_midi(y,srate=samplingrate)
+    print("Conversion finished!")
+    #loop is to make it less accurate
+    #for i in range(fix_amount):
+     # midi = fix(midi, filesound)
+    with open(r"midiResults/result.mid", 'wb') as f:
+        midi.writeFile(f)
+    print("Done. Exiting!")
+    print(filename)
+    MidiToSheet()
+    return render_template("show.html", msg = "File uplaoded successfully.")
+    
 @app.route("/upload-wav", methods = ["GET", "POST"])
 def upload_wav():
  # if not session.get('logged_in'):
@@ -241,6 +298,14 @@ def getFile(filename):
         as_attachment=True,
         mimetype='audio/wav'
     )
+
+@app.route('/show_midi/')
+def show_midi():
+  pm = PrettyMIDI("result.mid")
+  plotter = Plotter()
+  plotter.show(pm, "example-01.html")
+
+  return render_template('show.html')
 
 @app.route('/play/')
 def play():

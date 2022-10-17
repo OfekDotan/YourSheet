@@ -1,0 +1,3 @@
+graft YourSheet/templates
+graft YourSheet/static
+include YourSheet/schema.sql
