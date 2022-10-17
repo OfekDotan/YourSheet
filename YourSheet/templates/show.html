@@ -7,13 +7,11 @@
 
     {% block body %}
     {% if session.logged_in %}
-
-        <audio controls>
-            <source src="horse.wav" type="audio/wav">
-        </audio>
-
-        <button> <a href="/">Back</a></button>
-        <button> <a href="/play/">play</a></button>
+    {% if msg %}
+    <div class="alert alert-info" role="alert">
+        <ul><li>{{ msg }}</li></ul>
+    </div>
+    {% endif %}
         <button> <a href="/show_midi/">show midi</a></button>
 
     {% endif %}

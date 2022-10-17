@@ -5,13 +5,14 @@
   <h1>Your Sheet</h1>
   <div class=metanav>
   {% if not session.logged_in %}
-    <a href="{{ url_for('login') }}">log in</a>
-    <a href="{{ url_for('register') }}">register</a>
+    <a href="{{ url_for('login') }}">Log in</a>
+    <a href="{{ url_for('register') }}">Register</a>
   {% else %}
-    <a href="{{ url_for('logout') }}">log out</a>
-    <a href="{{ url_for('index') }}">home</a>
-    <a href="{{ url_for('uploads') }}">uploads</a>
+    <a href="{{ url_for('logout') }}">Log out</a>
+    <a href="{{ url_for('index') }}">Home</a>
+    <a href="{{ url_for('uploads') }}">Uploads</a>
     <a href="{{ url_for('upload_wav') }}">Upload a wav file</a>
+    <a href="{{ url_for('record') }}">Record</a>
   {% endif %}
   </div>
   {% for message in get_flashed_messages() %}

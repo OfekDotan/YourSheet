@@ -31,13 +31,13 @@ def MidiToSheet():
     pdfFullPath = os.path.join(pdfFullPath, "YourSheet",pdfFolder)
     print(pdfFullPath)
     try:
-        composition = mingus.midi.midi_file_in.MIDI_to_Composition(fullPath)
+        composition = mingus.midi.midi_file_in.MIDI_to_Composition(r"C:\Users\Ofek\Desktop\FinalProject\YourSheet\YourSheet\midiResults\result.mid")
     except:
         print("Oops!error occurred.")
     else:
         sheet = mingus.extra.lilypond.from_Composition(composition[0])
         print (sheet)
-        param = mingus.extra.lilypond.to_pdf(sheet,pdfFullPath+r"\file.pdf")
+        param = mingus.extra.lilypond.to_pdf(sheet, r"C:\Users\Ofek\Desktop\FinalProject\YourSheet\YourSheet\sheetsPdf")
         print (param)
 
 

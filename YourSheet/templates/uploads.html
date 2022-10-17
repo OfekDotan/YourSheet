@@ -11,6 +11,8 @@
     {% endfor %}
     <p>Click on play icon to play</p>
     <a href="{{ url_for('index') }}">Home</a>
+    <p>download your audio file as a music sheet!
+        <br>note: music sheet will be in downloads folder!</p>
     <form method="post" action="/to-midi" enctype="multipart/form-data">
         <select name="filename" id="filename">
             <option label="Choose the file you want to convert to music sheet:"></option>

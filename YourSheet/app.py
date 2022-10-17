@@ -234,7 +234,8 @@ def fix(midi, filesound):
   return(midi)
 
 #this method convert midi file to pdf
-def MidiToSheet():
+def MidiToSheet(filename):
+    filename = filename.replace('.wav','')
     myMIDI = r"midiResults\result.mid"
     fullPath = os.path.abspath(myMIDI)
     fullPath = (os.path.dirname(fullPath))
@@ -247,7 +248,7 @@ def MidiToSheet():
     else:
         sheet = mingus.extra.lilypond.from_Composition(composition[0])
         print (sheet)
-        param = mingus.extra.lilypond.to_pdf(sheet,str(Path.home() / "Downloads")+r"\result.pdf")
+        param = mingus.extra.lilypond.to_pdf(sheet,os.path.join(str(Path.home() / "Downloads"),filename))
         print (param)
 
 
@@ -267,8 +268,8 @@ def to_midi():
         midi.writeFile(f)
     print("Done. Exiting!")
     print(filename)
-    MidiToSheet()
-    return render_template("show.html", msg = "File uplaoded successfully.")
+    MidiToSheet(filename)
+    return render_template("show.html", msg = "success!")
     
 @app.route("/upload-wav", methods = ["GET", "POST"])
 def upload_wav():
@@ -284,10 +285,24 @@ def upload_wav():
     return render_template("uploadWav.html", msg = "File uploaded successfully.")
   return render_template("uploadWav.html", msg = "")
 
+
 @app.route("/uploads")
 def uploads():
   files = os.listdir('wavUploads')
   return render_template('uploads.html', files=files)
+
+@app.route('/record', methods=['POST', 'GET'])
+def record():
+    if request.method == "POST":
+        f = request.files['audio_data']
+        with open(r'wavUploads/yourRecording.wav', 'wb') as audio:
+            f.save(audio)
+        print('file uploaded successfully')
+
+        return render_template('record.html', request="POST")
+    else:
+        return render_template("record.html")
+
   
 @app.route('/getFile/<path:filename>')
 def getFile(filename):
@@ -301,7 +316,7 @@ def getFile(filename):
 
 @app.route('/show_midi/')
 def show_midi():
-  pm = PrettyMIDI("result.mid")
+  pm = PrettyMIDI(r"C:\Users\Ofek\Desktop\FinalProject\YourSheet\YourSheet\midiResults\result.mid")
   plotter = Plotter()
   plotter.show(pm, "example-01.html")
 
